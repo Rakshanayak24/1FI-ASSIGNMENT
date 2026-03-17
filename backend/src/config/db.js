@@ -1,20 +1,24 @@
 const { Pool } = require("pg");
 
-// Use Render DATABASE_URL if available, otherwise fallback to local Docker config
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || undefined,
+let pool;
 
-  // Required for Render PostgreSQL
-  ssl: process.env.DATABASE_URL
-    ? { rejectUnauthorized: false }
-    : false,
-
-  // Local fallback (for docker-compose)
-  user: process.env.DATABASE_URL ? undefined : "admin",
-  password: process.env.DATABASE_URL ? undefined : "admin123",
-  host: process.env.DATABASE_URL ? undefined : "db",
-  port: process.env.DATABASE_URL ? undefined : 5432,
-  database: process.env.DATABASE_URL ? undefined : "orderdb",
-});
+if (process.env.DATABASE_URL) {
+  // ✅ Render / Production DB
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  });
+} else {
+  // ✅ Local Docker DB
+  pool = new Pool({
+    user: "admin",
+    password: "admin123",
+    host: "db",
+    port: 5432,
+    database: "orderdb",
+  });
+}
 
 module.exports = pool;
