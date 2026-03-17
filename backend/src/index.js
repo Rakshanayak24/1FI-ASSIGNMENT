@@ -25,16 +25,14 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-
   console.error(err);
-
   res.status(500).json({
     error: "Internal server error"
   });
-
 });
 
-const PORT = 3001;
+// ✅ FIXED PORT
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
