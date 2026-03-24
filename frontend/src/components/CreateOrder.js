@@ -11,14 +11,19 @@ function CreateOrder() {
   const [quantity, setQuantity] = useState(1);
   const [shippingAddress, setShippingAddress] = useState("");
   const [selectedProductData, setSelectedProductData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const customersData = await fetchCustomers();
-      setCustomers(customersData);
+      try {
+        const customersData = await fetchCustomers();
+        setCustomers(Array.isArray(customersData) ? customersData : []);
 
-      const productsData = await fetchProducts();
-      setProducts(productsData);
+        const productsData = await fetchProducts();
+        setProducts(Array.isArray(productsData) ? productsData : []);
+      } catch (err) {
+        setError("Could not connect to server");
+      }
     };
     fetchData();
   }, []);
@@ -39,20 +44,22 @@ function CreateOrder() {
         quantity: quantity,
         shipping_address: shippingAddress
       });
-
       alert("Order created successfully!");
       setCustomerId("");
       setSelectedProduct("");
       setQuantity(1);
       setShippingAddress("");
-    } catch (error) {
-      console.error("Order creation failed", error);
+    } catch (err) {
+      alert("Failed to create order. Please try again.");
     }
   };
 
   return (
     <div>
       <h2>Create Order</h2>
+
+      {error && <p style={{ color: "red", fontWeight: "bold" }}>Error: {error}</p>}
+
       <form onSubmit={handleSubmit}>
         <div>
           <label>Customer</label>
