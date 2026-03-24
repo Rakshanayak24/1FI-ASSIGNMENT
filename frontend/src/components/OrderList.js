@@ -1,6 +1,8 @@
+// frontend/src/components/OrderList.js
 import React, { useEffect, useState } from "react";
+import { fetchOrders as apiFetchOrders, updateOrderStatus } from "../api";
 
-const API_URL = "http://localhost:3001/api";
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 function OrderList() {
 
@@ -15,57 +17,34 @@ function OrderList() {
   ];
 
   const fetchOrders = async () => {
-
-    const response = await fetch(`${API_URL}/orders`);
-    const data = await response.json();
+    const data = await apiFetchOrders();
     setOrders(data);
-
   };
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
-
   const handleStatusChange = async (id, status) => {
-
-    await fetch(`${API_URL}/orders/${id}/status`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ status })
-    });
-
+    await updateOrderStatus(id, status);
     fetchOrders();
-
   };
 
-
-  // CANCEL ORDER FUNCTION
   const handleCancel = async (id) => {
-
     const confirmCancel = window.confirm("Cancel this order?");
-
     if (!confirmCancel) return;
 
-    await fetch(`${API_URL}/orders/${id}/cancel`, {
+    await fetch(`${API_BASE}/orders/${id}/cancel`, {
       method: "PATCH"
     });
 
     fetchOrders();
-
   };
 
-
   return (
-
     <div>
-
       <h2>Orders</h2>
-
       <table border="1" cellPadding="10">
-
         <thead>
           <tr>
             <th>ID</th>
@@ -76,39 +55,25 @@ function OrderList() {
             <th>Status</th>
           </tr>
         </thead>
-
         <tbody>
-
           {orders.map((order) => (
-
             <tr key={order.id}>
-
               <td>{order.id}</td>
               <td>{order.customer_name}</td>
               <td>{order.product_name}</td>
               <td>{order.quantity}</td>
               <td>{order.total_amount}</td>
-
               <td>
-
                 <select
                   value={order.status}
-                  onChange={(e) =>
-                    handleStatusChange(order.id, e.target.value)
-                  }
+                  onChange={(e) => handleStatusChange(order.id, e.target.value)}
                 >
-
                   {statusOptions.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
+                    <option key={s} value={s}>{s}</option>
                   ))}
-
                 </select>
 
-
                 {(order.status === "pending" || order.status === "confirmed") && (
-
                   <button
                     style={{
                       marginLeft: "10px",
@@ -122,21 +87,13 @@ function OrderList() {
                   >
                     Cancel
                   </button>
-
                 )}
-
               </td>
-
             </tr>
-
           ))}
-
         </tbody>
-
       </table>
-
     </div>
-
   );
 }
 
