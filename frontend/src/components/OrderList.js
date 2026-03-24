@@ -7,6 +7,7 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 function OrderList() {
 
   const [orders, setOrders] = useState([]);
+  const [error, setError] = useState(null);
 
   const statusOptions = [
     "pending",
@@ -17,8 +18,20 @@ function OrderList() {
   ];
 
   const fetchOrders = async () => {
-    const data = await apiFetchOrders();
-    setOrders(data);
+    try {
+      const data = await apiFetchOrders();
+      // Guard: only set if it's actually an array
+      if (Array.isArray(data)) {
+        setOrders(data);
+        setError(null);
+      } else {
+        setOrders([]);
+        setError(data.error || "Failed to load orders");
+      }
+    } catch (err) {
+      setOrders([]);
+      setError("Could not connect to server");
+    }
   };
 
   useEffect(() => {
@@ -34,16 +47,21 @@ function OrderList() {
     const confirmCancel = window.confirm("Cancel this order?");
     if (!confirmCancel) return;
 
-    await fetch(`${API_BASE}/orders/${id}/cancel`, {
-      method: "PATCH"
-    });
-
+    await fetch(`${API_BASE}/orders/${id}/cancel`, { method: "PATCH" });
     fetchOrders();
   };
 
   return (
     <div>
       <h2>Orders</h2>
+
+      {/* Shows the actual backend error so you can debug */}
+      {error && (
+        <p style={{ color: "red", fontWeight: "bold" }}>
+          Error: {error}
+        </p>
+      )}
+
       <table border="1" cellPadding="10">
         <thead>
           <tr>
